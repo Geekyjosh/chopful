@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { recipes } from "@/data/recipes";
+import { getRecipeBySlug, getRecipeType, resolveRecipeComponents } from "@/data/recipes";
 
 type RecipePageProps = {
   params: Promise<{
@@ -11,11 +11,14 @@ type RecipePageProps = {
 export default async function RecipePage({ params }: RecipePageProps) {
   const { slug } = await params;
 
-  const recipe = recipes.find((item) => item.slug === slug);
+  const recipe = getRecipeBySlug(slug);
 
   if (!recipe) {
     notFound();
   }
+
+  const recipeType = getRecipeType(recipe);
+  const components = resolveRecipeComponents(recipe);
 
   return (
     <main className="min-h-screen bg-[#F6F3EC] text-[#1C241E]">
@@ -92,6 +95,41 @@ export default async function RecipePage({ params }: RecipePageProps) {
           </div>
         </div>
       </section>
+
+      {recipeType === "composed" && components.length > 0 && (
+        <section className="border-y border-[#1C241E]/10 bg-[#EEEAE1]">
+          <div className="mx-auto max-w-7xl px-6 py-10 lg:px-10 lg:py-12">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#B65C32]">
+              What&apos;s in this dish
+            </p>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {components.map((component) => {
+                if (component.recipe) {
+                  return (
+                    <Link
+                      key={`${component.name}-${component.recipe.id}`}
+                      href={`/recipes/${component.recipe.slug}`}
+                      className="border border-[#1C241E]/10 bg-[#F6F3EC] px-4 py-4 text-sm font-medium transition-colors hover:bg-white"
+                    >
+                      {component.name} →
+                    </Link>
+                  );
+                }
+
+                return (
+                  <div
+                    key={component.name}
+                    className="border border-[#1C241E]/10 bg-[#F6F3EC] px-4 py-4 text-sm text-[#465149]"
+                  >
+                    {component.name}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="border-y border-[#1C241E]/10">
         <div className="mx-auto grid max-w-7xl lg:grid-cols-[0.7fr_1.3fr]">
