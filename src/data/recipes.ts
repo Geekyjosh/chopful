@@ -1,3 +1,8 @@
+export type RecipeComponent = {
+  name: string;
+  recipeId?: string;
+};
+
 export type Recipe = {
   id: string;
   name: string;
@@ -15,6 +20,8 @@ export type Recipe = {
   difficulty: "Easy" | "Medium" | "Hard";
   estimatedCost: number;
   image: string;
+  recipeType?: "standalone" | "composed";
+  components?: RecipeComponent[];
   ingredients: {
     name: string;
     amount: string;
@@ -28,6 +35,12 @@ export const recipes: Recipe[] = [
     id: "1",
     name: "Amala & Ewedu",
     slug: "amala-ewedu",
+    recipeType: "composed",
+    components: [
+      { name: "Amala" },
+      { name: "Ewedu" },
+      { name: "Gbegiri", recipeId: "gbegiri" },
+    ],
     description:
       "Soft amala served with silky ewedu, rich gbegiri and assorted meat.",
     cuisine: "Nigerian",
@@ -471,6 +484,11 @@ export const recipes: Recipe[] = [
     id: "rice-and-moi-moi",
     name: "Rice and Moi Moi",
     slug: "rice-and-moi-moi",
+    recipeType: "composed",
+    components: [
+      { name: "White rice" },
+      { name: "Moi Moi", recipeId: "moi-moi" },
+    ],
     description:
       "Steamed Nigerian bean pudding served with fluffy white rice for a filling combination that works for breakfast, lunch or dinner.",
     cuisine: "Nigerian",
@@ -1709,7 +1727,7 @@ export const recipes: Recipe[] = [
   {
     id: "4",
     name: "Moi Moi",
-    slug: "moi-moi",
+    slug: "moi-moi-classic",
     description:
       "Steamed bean pudding made with blended beans, peppers, onions and eggs.",
     cuisine: "Nigerian",
@@ -1746,7 +1764,7 @@ export const recipes: Recipe[] = [
   {
     id: "5",
     name: "Ewa Riro",
-    slug: "ewa-riro",
+    slug: "ewa-riro-classic",
     description:
       "Slow-cooked beans simmered in a rich pepper sauce with palm oil.",
     cuisine: "Nigerian",
@@ -1819,7 +1837,7 @@ export const recipes: Recipe[] = [
   {
     id: "7",
     name: "Gbegiri",
-    slug: "gbegiri",
+    slug: "gbegiri-classic",
     description:
       "Smooth Yoruba bean soup traditionally served with ewedu and a swallow.",
     cuisine: "Nigerian",
@@ -2325,3 +2343,35 @@ export const recipes: Recipe[] = [
     ],
   },
 ];
+
+export type ResolvedRecipeComponent = RecipeComponent & {
+  recipe?: Recipe;
+};
+
+export function getRecipeById(id: string) {
+  return recipes.find((recipe) => recipe.id === id);
+}
+
+export function getRecipeBySlug(slug: string) {
+  return recipes.find((recipe) => recipe.slug === slug);
+}
+
+export function getRecipeType(recipe: Recipe): "standalone" | "composed" {
+  return recipe.recipeType ?? "standalone";
+}
+
+export function resolveRecipeComponents(
+  recipe: Recipe,
+): ResolvedRecipeComponent[] {
+  return (recipe.components ?? []).map((component) => ({
+    ...component,
+    recipe: component.recipeId
+      ? getRecipeById(component.recipeId)
+      : undefined,
+  }));
+}
+
+export function getRecipeIngredients(recipe: Recipe) {
+  return recipe.ingredients;
+}
+
